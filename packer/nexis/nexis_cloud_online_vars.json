@@ -1,0 +1,20 @@
+{
+    "client_id": "",
+    "client_secret": "",
+    "subscription_id": "",
+    "ssh_user": "packer",
+    "ssh_pass": "Password12345",
+    "nexis_storage_vm_script_url":"https://raw.githubusercontent.com/jamesptruitt/EditorialInTheCloudBYOL/master/scripts/installNexis.bash",
+    "nexis_storage_vm_script_name":"installNexis.bash",
+    "nexis_storage_vm_artifacts_location":"https://ssengreleng.blob.core.windows.net/nexisgold/20.3.2/installers",
+    "nexis_storage_vm_build":"AvidNexisCloud_20.3.2-17.run",
+    "nexis_storage_vm_part_number":"0100-40109-00",
+    "resource_group_name":"Avid-SIG-RG",
+    "shared_image_gallery_name": "Avid_SIG",
+    "shared_image_name": "Nexis_Cloud_Online",
+    "compute_name": "mynexis",
+    "location": "East US 2",
+    "vm_size": "Standard_DS2_v2",
+    "manage_image_name_base":"nexis-cloud-online-image",
+    "replication_regions": "eastus,eastus2"
+}

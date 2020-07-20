@@ -1,0 +1,58 @@
+{
+  "variables": {
+    "client_id": "",
+    "client_secret": "",
+    "subscription_id": "",
+    "tenant_id": "",
+    "ssh_user": "avid",
+    "ssh_pass": "Password12345"
+  },
+  "builders": [{
+    "type": "azure-arm",
+
+    "client_id": "{{user `client_id`}}",
+    "client_secret": "{{user `client_secret`}}",
+    "subscription_id": "{{user `subscription_id`}}",
+    "tenant_id": "{{user `tenant_id`}}",
+
+    "shared_image_gallery_destination": {
+      "resource_group": "Avid-SIG-RG",
+      "gallery_name": "Avid_SIG",
+      "image_name": "MediaCentral",
+      "image_version": "{{isotime \"06\"}}.{{isotime \"01\"}}.{{isotime \"02030405\"}}",
+      "replication_regions": ["eastus2"]
+    },
+
+    "managed_image_resource_group_name": "Avid-SIG-RG",
+    "managed_image_name": "mediacentral-image-{{isotime \"20060102030405\"}}",
+
+    "ssh_username": "{{user `ssh_user`}}",
+    "ssh_password": "{{user `ssh_pass`}}",
+
+    "os_type": "Linux",
+    "image_publisher": "OpenLogic",
+    "image_offer": "CentOS",
+    "image_sku": "7.7",
+    "image_version": "latest",
+    "ssh_pty": "true",
+
+    "location": "East US 2",
+    "vm_size": "Standard_DS2_v2"
+  }],
+  "provisioners": [{
+    "execute_command": "echo '{{user `ssh_pass`}}' | {{ .Vars }} sudo -S -E sh '{{ .Path }}'",
+    "inline": [
+      "yum update -y",
+      "wget https://editorialbyol.blob.core.windows.net/installers/mediacentral_platform_2019.9.5.iso -O /tmp/mediacentral_platform_2019.9.5.iso",
+      "wget https://editorialbyol.blob.core.windows.net/installers/mediacentral_feature_packs_2019.9.5.iso -O /tmp/mediacentral_feature_packs_2019.9.5.iso",
+      "mkdir /sysinstall",
+      "mkdir /features",
+      "mount /tmp/mediacentral_platform_2019.9.5.iso /sysinstall",
+      "mount /tmp/mediacentral_feature_packs_2019.9.5.iso /features",
+      "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
+    ],
+    "inline_shebang": "/bin/sh -x",
+    "type": "shell",
+    "skip_clean": true
+  }]
+}

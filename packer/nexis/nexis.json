@@ -1,0 +1,79 @@
+{
+  "variables": {
+    "client_id": "",
+    "client_secret": "",
+    "subscription_id": "",
+    "ssh_user": "",
+    "ssh_pass": "",
+    "nexis_storage_vm_script_url":"",
+    "nexis_storage_vm_script_name":"",
+    "nexis_storage_vm_artifacts_location":"",
+    "nexis_storage_vm_build":"",
+    "nexis_storage_vm_part_number":"",
+    "resource_group_name":"",
+    "shared_image_gallery_name": "",
+    "shared_image_name": "",
+    "compute_name": "",
+    "location": "",
+    "vm_size": "",
+    "manage_image_name_base":"",
+    "replication_regions": ""
+  },
+  "builders": [{
+    "type": "azure-arm",
+
+    "client_id": "{{user `client_id`}}",
+    "client_secret": "{{user `client_secret`}}",
+    "resource_group_name": "{{user `resource_group`}}",
+    "storage_account": "{{user `storage_account`}}",
+    "subscription_id": "{{user `subscription_id`}}",
+
+    "temp_compute_name": "{{user `compute_name`}}",
+
+    "shared_image_gallery_destination": {
+      "resource_group": "{{user `resource_group_name`}}",
+      "gallery_name": "{{user `shared_image_gallery_name`}}",
+      "image_name": "{{user `shared_image_name`}}",
+      "image_version": "{{isotime \"06\"}}.{{isotime \"01\"}}.{{isotime \"02030405\"}}",
+      "replication_regions": "{{user `replication_regions`}}"
+    },
+
+    "managed_image_resource_group_name": "{{user `resource_group_name`}}",
+    "managed_image_name": "{{user `manage_image_name_base`}}-{{isotime \"20060102030405\"}}",
+
+    "ssh_username": "{{user `ssh_user`}}",
+    "ssh_password": "{{user `ssh_pass`}}",
+
+    "os_type": "Linux",
+    "image_publisher": "credativ",
+    "image_offer": "Debian",
+    "image_sku": "8",
+    "image_version": "8.20191118.0",
+    "ssh_pty": "true",
+
+    "azure_tags": {
+      "environment":"dev",
+      "version": "{{user `nexis_storage_vm_build`}}",
+      "avid_system_name":"Nexis",
+      "manage_image_name_base": "{{user `manage_image_name_base`}}-{{isotime \"20060102030405\"}}"
+    },
+
+    "location": "{{user `location`}}",
+    "vm_size": "{{user `vm_size`}}"
+  }],
+  "provisioners": [{
+    "execute_command": "echo '{{user `ssh_pass`}}' | {{ .Vars }} sudo -S -E sh '{{ .Path }}'",
+    "inline": [
+
+      "wget '{{user `nexis_storage_vm_script_url`}}' -O {{user `nexis_storage_vm_script_name`}}",
+
+      "echo {{user `ssh_pass`}} | sudo -S /bin/bash {{user `nexis_storage_vm_script_name`}} {{user `compute_name`}} {{user `nexis_storage_vm_artifacts_location`}} {{user `nexis_storage_vm_build`}} {{user `nexis_storage_vm_part_number`}}",
+
+      "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
+
+    ],
+    "inline_shebang": "/bin/sh -x",
+    "skip_clean": true,
+    "type": "shell"
+  }]
+}

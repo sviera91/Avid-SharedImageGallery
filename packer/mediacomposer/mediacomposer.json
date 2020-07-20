@@ -1,0 +1,74 @@
+{
+    "variables": {
+        "client_id": "",
+        "client_secret": "",
+        "subscription_id": "",
+        "tenant_id": ""
+    },
+    "builders": [{
+        "type": "azure-arm",
+
+        "client_id": "{{user `client_id`}}",
+        "client_secret": "{{user `client_secret`}}",
+        "subscription_id": "{{user `subscription_id`}}",
+        "tenant_id": "{{user `tenant_id`}}",
+
+        "shared_image_gallery_destination": {
+            "resource_group": "Avid-SIG-RG",
+            "gallery_name": "Avid_SIG",
+            "image_name": "MediaComposer",
+            "image_version": "{{isotime \"06\"}}.{{isotime \"01\"}}.{{isotime \"02030405\"}}",
+            "replication_regions": ["eastus2"]
+        },
+
+        "managed_image_resource_group_name": "Avid-SIG-RG",
+        "managed_image_name": "mediacomposer-image-{{isotime \"20060102030405\"}}",
+
+        "os_type": "Windows",
+        "image_publisher": "MicrosoftWindowsServer",
+        "image_offer": "WindowsServer",
+        "image_sku": "2019-Datacenter",
+
+        "communicator": "winrm",
+        "winrm_use_ssl": true,
+        "winrm_insecure": true,
+        "winrm_timeout": "30m",
+        "winrm_username": "packer",
+
+        "azure_tags": {
+            "dept": "Learning",
+            "task": "Image deployment"
+        },
+
+        "location": "East US 2",
+        "vm_size": "Standard_NV12"
+    }],
+    "provisioners": [{
+        "type": "powershell",
+        "script": "./scripts/media_composer_setup.ps1",
+        "environment_vars":[
+            "avid_nexis_client_url=https://editorialbyol.blob.core.windows.net/installers/AvidNEXISClient_Win64_19.12.1.9.msi",
+            "mediaComposer_url=https://editorialbyol.blob.core.windows.net/installers/Media_Composer_2019.12_Win.zip",
+            "teradici_url=https://editorialbyol.blob.core.windows.net/installers/PCoIP_agent_release_installer_2.11.0.9616_graphics.exe",
+            "nvidia_url=https://editorialbyol.blob.core.windows.net/installers/442.06_grid_win10_64bit_international_whql.exe",
+            "teradici_key=No_Key"
+        ]
+    },
+    {
+        "type": "powershell",
+        "script": "./scripts/terradici_setup.ps1",
+        "pause_before": "180s",
+        "environment_vars":[
+            "teradici_url=https://editorialbyol.blob.core.windows.net/installers/pcoip-agent-graphics_20.04.0.exe",
+            "teradici_key=No_Key"
+        ]
+    },
+    {
+        "type": "powershell",
+        "inline": [
+            "Add-WindowsFeature Web-Server",
+            "& $env:SystemRoot\\System32\\Sysprep\\Sysprep.exe /oobe /generalize /quiet /quit",
+            "while($true) { $imageState = Get-ItemProperty HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Setup\\State | Select ImageState; if($imageState.ImageState -ne 'IMAGE_STATE_GENERALIZE_RESEAL_TO_OOBE') { Write-Output $imageState.ImageState; Start-Sleep -s 10  } else { break } }"
+        ]
+    }]
+  }

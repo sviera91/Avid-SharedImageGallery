@@ -1,5 +1,7 @@
 # Create Shared Image Gallery and generate Images using Packer
 
+### The content in this repository is a fork from a project created by James Truitt from Microsoft.
+
 ## Required Software
     - Azure Subscription
     - Azuer CLI
